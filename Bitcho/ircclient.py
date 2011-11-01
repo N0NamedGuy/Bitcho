@@ -231,7 +231,7 @@ class ircclient:
     state='' # am I waiting for some data from server?
     channels={}
 
-    DEBUG=True
+    DEBUG=False
 
     def __init__(self, host, port):
         self.host=host
@@ -254,7 +254,8 @@ class ircclient:
         self.s.settimeout(1) # timeout for blocking operations in seconds
 
     def close(self):
-        print 'Closing bot'
+        if self.DEBUG:
+            print 'Closing bot'
         self.running = False
         self.s.close()
 
@@ -513,7 +514,8 @@ class ircclient:
         # To be on the safe side, we run WHO to update anything we missed
         # namely, the user's status
         self.who(channel)
-        print self.channels[channel]
+        if self.DEBUG:
+            print self.channels[channel]
     
     def event_part(self, user, channel, msg):
         if self.DEBUG:
@@ -538,12 +540,15 @@ class ircclient:
                 +' from '+chan+' msg: '+msg
 
         if (kicked_nick == self.get_nick()):
-            print 'I GOT KICKED :('
+            if self.DEBUG:
+                print 'I GOT KICKED :('
             del self.channels[chan]
         else:
-            print self.channels[chan]
+            if self.DEBUG:
+                print self.channels[chan]
             del self.channels[chan][kicked_nick]
-            print self.channels[chan]
+            if self.DEBUG:
+                print self.channels[chan]
     
     def event_nick(self, user, new_nick):
         if self.DEBUG:

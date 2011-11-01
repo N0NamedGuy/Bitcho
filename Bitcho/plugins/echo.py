@@ -12,3 +12,7 @@ class EchoPlugin(PluginBase):
     
     def on_channel_msg(self, user, channel, msg):
         print "<%s@%s> %s" % (user,channel,msg);
+        self.bot.send_msg(channel, "Hi %s" % (user))
+        
+    def on_join(self, user, channel):
+        self.bot.send_msg(channel, "Welcome to %s, %s!" % (channel, user))

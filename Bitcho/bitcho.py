@@ -10,6 +10,8 @@ import os
 class bitcho(ircclient):
     PLUGIN_PATH = 'plugins'
     
+    # code from:
+    # http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
     def reload_plugins(self):
         self.plugins = []
         
@@ -21,20 +23,16 @@ class bitcho(ircclient):
             for m in modulename.split('.')[1:]:
                 d=d[m].__dict__
      
-            #look through this dictionary for things
-            #that are subclass of Job
-            #but are not Job itself
             for key, entry in d.items():
                 if key == PluginBase.__name__:
                     continue
      
                 try:
                     if issubclass(entry, PluginBase):
-                        self.plugins.append(entry())
+                        e = entry()
+                        e._set_bot_instance(self);
+                        self.plugins.append(e)
                 except TypeError:
-                    #this happens when a non-type is passed in to issubclass. We
-                    #don't care as it can't be a subclass of Job if it isn't a
-                    #type
                     continue
         
         
@@ -53,10 +51,9 @@ class bitcho(ircclient):
         self.reload_plugins()
         
     def send_welcome(self):
-        ircclient.send_all(self,
-                           [
-                            'USER bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
-                            "nickserv login %s %s" % (self.auth[0], self.auth[1])])
+        ircclient.send_all(self, [
+            'USER bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
+            "nickserv login %s %s" % (self.auth[0], self.auth[1])])
 
     def join_channels(self):
         for chan in self.ajoin:
@@ -65,3 +62,7 @@ class bitcho(ircclient):
     def event_channel_msg(self, user, channel, msg):
         for p in self.plugins:
             p.on_channel_msg(user, channel, msg)
+            
+    def event_join(self, user, channel):
+        for p in self.plugins:
+            p.on_join(user, channel)
