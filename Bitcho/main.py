@@ -1,6 +1,6 @@
 #! /usr/bin/env python2.7
 
-from Bitcho import Bitcho
+from bitcho import Bitcho
 import sys
 
 host='irclei.ath.cx'
