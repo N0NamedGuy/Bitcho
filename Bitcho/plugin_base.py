@@ -10,18 +10,16 @@ class PluginEvent():
     
 class PluginBase(object):
     
-    events = {}
-    
     def __init__(self):
+        self.events = {}
         pass
     
     def plugin_init(self):
         pass
     
-    def register_events(self):
-        raise NotImplementedError
-    
     def register_event(self, event, callback):
+        print "Registering " + event
+        
         e = PluginEvent()
         e.callback = callback
         e.event = event
