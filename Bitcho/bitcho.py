@@ -5,22 +5,25 @@ Created on Nov 1, 2011
 '''
 from ircclient import ircclient
 from plugin_base import PluginBase
+from fun_thread import FunThread
 import os
 
-class bitcho(ircclient):
+class Bitcho(ircclient):
     PLUGIN_PATH = 'plugins'
     
+    # TODO: put plugin management in its own module
     # code from:
     # http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
     def reload_plugins(self):
         self.plugins = {}
         
-        
         def add_subclass(modulename):
         
             def add_plugin(e):
+                print "Adding plugin %s" % (e,) 
+                
                 e._set_bot_instance(self)
-                e.register_events()
+                e.plugin_init()
                 evs = e.events
                 
                 for ev in evs:
@@ -60,11 +63,10 @@ class bitcho(ircclient):
         self.auth = auth
         self.ajoin = ajoin
         self.reload_plugins()
-        print self.plugins
         
     def send_welcome(self):
         ircclient.send_all(self, [
-            'USER bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
+            'USER Bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
             "nickserv login %s %s" % (self.auth[0], self.auth[1])])
 
     def join_channels(self):
@@ -75,18 +77,25 @@ class bitcho(ircclient):
         if not event in plugin.events:
             return
         
-        evs = plugin.events[event]
+        funs = plugin.events[event]
         
-        for ev in evs:
-            ev.callback(*args)
+        for ev in funs:
+            t = FunThread(ev.callback, args)
+            t.start()
+            
+            # TODO: some kind of thread manager would be nice =)
     
-    def handle_plugins(self, event, args):
+    def handle_plugins(self, event, args = []):
         if not event in self.plugins:
             return
         
         plugs = self.plugins[event]
         for p in plugs:
             self.handle_plugin(event, p, args)
+    
+    def recv_loop(self):
+        self.handle_plugins("connect")
+        return ircclient.recv_loop(self)
     
     def event_join(self, user, channel):
         ircclient.event_join(self, user, channel)
@@ -108,6 +117,7 @@ class bitcho(ircclient):
         ircclient.event_deop(self, user, channel, nick_deoped)
         self.handle_plugins('deop', [user, channel, nick_deoped])
         
+    # TODO: other events
     
     def event_raw(self, tokens, raw):
         if len(tokens[1]) < 3:

@@ -1,6 +1,6 @@
 #! /usr/bin/env python2.7
 
-from bitcho import bitcho
+from Bitcho import Bitcho
 import sys
 
 host='irclei.ath.cx'
@@ -17,7 +17,7 @@ else:
 
 def main():
     auth=(nick,password)
-    client=bitcho(host,port,auth,channels)
+    client=Bitcho(host,port,auth,channels)
     try:
         client.connect()
         client.nick(nick)

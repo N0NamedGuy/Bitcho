@@ -15,6 +15,9 @@ class PluginBase(object):
     def __init__(self):
         pass
     
+    def plugin_init(self):
+        pass
+    
     def register_events(self):
         raise NotImplementedError
     

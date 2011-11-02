@@ -6,7 +6,7 @@ Created on Nov 1, 2011
 from plugin_base import PluginBase
 
 class EchoPlugin(PluginBase):
-    def register_events(self):
+    def plugin_init(self):
         self.register_event("channel_msg", self.on_channel_msg)
         self.register_event("join", self.on_join)
         self.register_event("priv_msg", self.on_priv_msg)
