@@ -456,6 +456,11 @@ class ircclient:
     
         elif len(tokens) >= 2 and tokens[1].lower() == 'quit':
             self.event_quit(irc_user(tokens[0][1:]), raw[raw.find(':',1)+1:])
+            
+        self.event_raw(tokens, raw);
+    
+    def event_raw(self, tokens, raw):
+        pass
     
     def event_ping(self, msg):
         self.send('PONG :'+msg)
