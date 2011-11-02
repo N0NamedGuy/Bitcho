@@ -1,8 +1,3 @@
-'''
-Created on Nov 1, 2011
-
-@author: David
-'''
 #! /usr/bin/env python2.7
 
 from bitcho import bitcho
