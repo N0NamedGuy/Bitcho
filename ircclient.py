@@ -348,7 +348,7 @@ class ircclient:
         self.send('JOIN '+chan)    
         self.who(chan) 
     
-    def quit(self, msg):
+    def quit(self, msg): #@ReservedAssignment
         self.send('QUIT '+msg)
 
     def send_all(self, msgs):
@@ -364,13 +364,13 @@ class ircclient:
         pass
 
     def recv_loop(self):
-        buffer=''
+        buf=''
 
         self.running = True
         while self.running:
             try:
-                buffer+=self.s.recv(1024*32)
-                if buffer == '': # TCP Connection went down :(
+                buf+=self.s.recv(1024*32)
+                if buf == '': # TCP Connection went down :(
                     self.running = False
                     self.event_socket_closed()
                     return
@@ -379,10 +379,10 @@ class ircclient:
                 self.periodic_run()
                 continue
 
-            while buffer.find('\r\n') >= 0:
-                e=buffer.find('\r\n')
-                line=buffer[0:e]
-                buffer=buffer[e+2:]
+            while buf.find('\r\n') >= 0:
+                e=buf.find('\r\n')
+                line=buf[0:e]
+                buf=buf[e+2:]
                 
                 if self.DEBUG:
                     print '>>' + line

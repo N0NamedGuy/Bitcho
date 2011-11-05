@@ -20,7 +20,7 @@ class TwitterListener(tweepy.StreamListener):
             # TODO: Change this
             self.bot.send_msg("#fct", msg)
             
-        except Exception, e:
+        except Exception:
             pass
         
         return tweepy.StreamListener.on_status(self, status)

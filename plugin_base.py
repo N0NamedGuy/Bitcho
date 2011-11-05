@@ -3,6 +3,7 @@ Created on Nov 1, 2011
 
 @author: David Serrano
 '''
+
 class PluginEvent():
     def __init__(self):
         self.callback = lambda : {}
@@ -18,8 +19,6 @@ class PluginBase(object):
         pass
     
     def register_event(self, event, callback):
-        print "Registering " + event
-        
         e = PluginEvent()
         e.callback = callback
         e.event = event
@@ -28,12 +27,14 @@ class PluginBase(object):
             self.events[event] = []
         
         self.events[event].append(e)
+        
+    def dispatch_event(self, event, args):
+        import plugin_manager
+        plugin_manager.handle_plugins(self.bot, event, args)
     
     def unregister_event(self, event):
-        if not event in self.events:
-            return
-        
-        del self.events[event]
+        if event in self.events:
+            del self.events[event]
     
     def unregister_callback(self, event, callback):
         if not event in self.events:
