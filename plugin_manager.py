@@ -4,6 +4,7 @@ Created on Nov 5, 2011
 @author: David
 '''
 import os
+import json
 from plugin_base import PluginBase
 from fun_thread import FunThread
 PLUGIN_PATH = 'plugins'
@@ -13,11 +14,23 @@ PLUGIN_PATH = 'plugins'
 # http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
 def get_plugins(bot):
     plugins = {}
+    try:
+        f = open("plugins/conf/blacklist")
+        blacklist = json.load(f)['blacklist']
+        f.close()
+    except Exception:
+        blacklist = []
     
     def add_subclass(modulename):
-    
+        
+        name = ".".join(modulename.split(".")[1:])
+        
+        if name in blacklist:
+            print "Plugin %s blacklisted" % (name,)
+            return
+            
         def add_plugin(e):
-            print "Adding plugin %s" % (e,) 
+            print "Adding plugin %s" % (name,) 
             
             e._set_bot_instance(bot)
             e.plugin_init()

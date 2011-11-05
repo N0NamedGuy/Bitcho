@@ -47,11 +47,20 @@ class TwitterPlugin(PluginBase):
         auth = tweepy.BasicAuthHandler(conf['user'], conf['password'])
         conf['password'] = None
         
-        self.listener = TwitterListener(self.bot)
         
         api = tweepy.API()
         #TODO: Change this
-        user = api.get_user("n0namedguy")
+        self.streams = {}
+        to_follow = conf['follow']
+        for channel, users in to_follow.items():
+            stream = tweepy.Stream(auth, TwitterListener(self.bot, channel))
+            follow = []
+            for user in users:
+                u = api.get_user(user) 
+                follow.append(u.id_str)
+            
+            print "Channel %s follows %s" % (channel, users)
+            
+            stream.filter(follow)
+            self.streams[channel] = stream
         
-        self.stream = tweepy.Stream(auth, self.listener)
-        self.stream.filter(follow = [user.id_str])
