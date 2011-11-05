@@ -9,20 +9,13 @@ port=6667
 nick = sys.argv[1] if len(sys.argv) >= 2 else 'bot-testing'
 password= sys.argv[2] if len(sys.argv) >= 3 else "blahbottesting"
 
-channels=[]
-if len(sys.argv) >= 4:
-    channels = sys.argv[3:]
-else:
-    channels=['#bot-events']
-
 def main():
     auth=(nick,password)
-    client=Bitcho(host,port,auth,channels)
+    client=Bitcho(host,port,auth)
     try:
         client.connect()
         client.nick(nick)
         client.send_welcome()
-        client.join_channels()
         client.recv_loop()
     except KeyboardInterrupt:
             client.quit('Hasta!')

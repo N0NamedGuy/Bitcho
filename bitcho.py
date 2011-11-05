@@ -8,21 +8,17 @@ import plugin_manager
 
 class Bitcho(ircclient):
 
-    def __init__(self, host, port, auth, ajoin):
+    def __init__(self, host, port, auth):
         ircclient.__init__(self, host, port)
         self.auth = auth
-        self.ajoin = ajoin
         plugin_manager.get_plugins(self)
-        
+    
+    # TODO: move to a plugin of its own
     def send_welcome(self):
         ircclient.send_all(self, [
             'USER Bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
             "nickserv login %s %s" % (self.auth[0], self.auth[1])])
 
-    def join_channels(self):
-        for chan in self.ajoin:
-            ircclient.join(self,chan)
-    
     def recv_loop(self):
         plugin_manager.handle_plugins(self, "connect")
         return ircclient.recv_loop(self)
