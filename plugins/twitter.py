@@ -18,7 +18,6 @@ class TwitterListener(tweepy.StreamListener):
     def on_status(self, status):
         try:
             msg = "<@%s> - %s" % (status.author.screen_name, status.text)
-            # TODO: Change this
             self.bot.send_msg(self.out_chan, msg)
             
         except Exception:
@@ -48,9 +47,7 @@ class TwitterPlugin(PluginBase):
         auth = tweepy.BasicAuthHandler(conf['user'], conf['password'])
         conf['password'] = None
         
-        
         api = tweepy.API()
-        #TODO: Change this
         self.streams = {}
         to_follow = conf['follow']
         for channel, users in to_follow.items():
