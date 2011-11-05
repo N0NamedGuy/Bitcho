@@ -13,12 +13,13 @@ class TwitterListener(tweepy.StreamListener):
     def __init__(self, bot, out_chan):
         tweepy.StreamListener.__init__(self)
         self.bot = bot
+        self.out_chan = out_chan
     
     def on_status(self, status):
         try:
             msg = "<@%s> - %s" % (status.author.screen_name, status.text)
             # TODO: Change this
-            self.bot.send_msg("out_chan", msg)
+            self.bot.send_msg(self.out_chan, msg)
             
         except Exception:
             pass
