@@ -10,7 +10,7 @@ from plugin_base import PluginBase
 from plugins.lib import tweepy
 
 class TwitterListener(tweepy.StreamListener):
-    def __init__(self, bot):
+    def __init__(self, bot, out_chan):
         tweepy.StreamListener.__init__(self)
         self.bot = bot
     
@@ -18,7 +18,7 @@ class TwitterListener(tweepy.StreamListener):
         try:
             msg = "<@%s> - %s" % (status.author.screen_name, status.text)
             # TODO: Change this
-            self.bot.send_msg("#fct", msg)
+            self.bot.send_msg("out_chan", msg)
             
         except Exception:
             pass
@@ -45,7 +45,7 @@ class TwitterPlugin(PluginBase):
         fp.close()
         
         auth = tweepy.BasicAuthHandler(conf['user'], conf['password'])
-        conf = None
+        conf['password'] = None
         
         self.listener = TwitterListener(self.bot)
         
