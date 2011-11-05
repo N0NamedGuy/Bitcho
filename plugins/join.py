@@ -43,6 +43,5 @@ class JoinPlugin(PluginBase):
         if len(sys.argv) >= 4:
             ajoin += sys.argv[3:]
         
-        
         for chan in ajoin:
             self.bot.join(chan)
