@@ -527,6 +527,9 @@ class ircclient:
             print 'DEBUG ' + (user.get_nick()) + ' left channel ' \
                 + channel + '. reason: "' + msg + '"'
 
+        if not(channel in self.channels):
+            return
+        
         if self.get_nick() == user.get_nick():
             del self.channels[channel]
         elif user.get_nick() in self.channels[channel]:

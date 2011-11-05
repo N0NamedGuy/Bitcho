@@ -1,0 +1,10 @@
+{
+	"masters": ["N0_Named_Guy"],
+	"permissions": {
+		"master": ["join"],
+		"all": ["date"],
+		"op": [],
+		"voice": []
+	},
+	"prefix": "."
+}

@@ -15,7 +15,7 @@ PLUGIN_PATH = 'plugins'
 def get_plugins(bot):
     plugins = {}
     try:
-        f = open("plugins/conf/blacklist")
+        f = open("plugins/conf/blacklist.json")
         blacklist = json.load(f)['blacklist']
         f.close()
     except Exception:
