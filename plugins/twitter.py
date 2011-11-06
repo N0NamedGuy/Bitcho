@@ -40,25 +40,26 @@ class TwitterPlugin(PluginBase):
         self.register_event("connect", self.on_connect)
     
     def on_connect(self):
+        # Load configuration
         fp = open("plugins/conf/twitter.json")
         conf = json.load(fp)
         fp.close()
         
+        # Setup auth
         auth = tweepy.BasicAuthHandler(conf['user'], conf['password'])
         conf['password'] = None
         
         api = tweepy.API()
         self.streams = {}
         to_follow = conf['follow']
+        follow = []
+        
+        # Create a stream for every selected channel
         for channel, users in to_follow.items():
-            stream = tweepy.Stream(auth, TwitterListener(self.bot, channel))
-            follow = []
-            for user in users:
-                u = api.get_user(user) 
+            for usr in users:
+                u = api.get_user(usr) 
                 follow.append(u.id_str)
             
-            print "Channel %s follows %s" % (channel, users)
-            
-            stream.filter(follow)
+            stream = tweepy.Stream(auth, TwitterListener(self.bot, channel))
+            stream.filter(follow, async=True)
             self.streams[channel] = stream
-        
