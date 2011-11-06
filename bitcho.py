@@ -27,6 +27,10 @@ class Bitcho(ircclient):
         ircclient.event_join(self, user, channel)
         plugin_manager.handle_plugins(self, 'join', [user, channel])
         
+    def event_part(self, user, channel, msg):
+        ircclient.event_part(self, user, channel, msg)
+        plugin_manager.handle_plugins(self, 'part', [user, channel, msg])
+        
     def event_channel_msg(self, user, channel, msg):
         ircclient.event_channel_msg(self, user, channel, msg)
         plugin_manager.handle_plugins(self, 'channel_msg', [user, channel, msg])
