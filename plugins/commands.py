@@ -12,9 +12,6 @@ def get_conf():
     f.close()
     return conf
 
-def get_prefix():
-    return get_conf()["prefix"]
-
 def has_access(bot, user, permission, channel, masters):
     # pure copy pasta from the last version, ihih
     # it is ugly, I know...
@@ -58,10 +55,12 @@ def check_permission(bot, command, user, channel):
 class CommandsPlugin(PluginBase):
     
     def plugin_init(self):
+        self.conf = get_conf()
         self.register_event("channel_msg", self.on_channel_msg)
         
     def on_channel_msg(self, user, channel, msg):
-        prefix = get_prefix()
+        # FIXME: Sometime this stops working on the presence of strange stuff
+        prefix = self.conf['prefix']
         if msg.startswith(prefix):
             cmd = msg[len(prefix):]
             if cmd == "":
