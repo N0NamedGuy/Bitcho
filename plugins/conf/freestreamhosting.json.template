@@ -1,0 +1,18 @@
+{
+	"streams": [
+		{
+			"name": "Super Mega Stream",
+			"ip": "127.0.0.1:29420",
+			"stream": "http://localhost",
+			"refresh": 120,
+			"notify": ["#streams", "#chan1", "#chan2", "user"]
+		}, 
+		{
+			"name": "Super Mega Stream",
+			"ip": "192.168.0.1:29420",
+			"stream": "http://example.com",
+			"refresh": 240,
+			"notify": ["#streams", "#chan1", "#chan2", "user"]
+		}
+	]
+}
