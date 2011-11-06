@@ -1,4 +1,8 @@
 {
 	"user": "",
-	"password": ""
+	"password": "$6390",
+	"follow": {
+		"#chan1": ["twitter2", "twitter"],
+		"#chan2": ["twitter1"]
+	}
 }
