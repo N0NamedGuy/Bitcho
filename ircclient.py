@@ -1,4 +1,4 @@
-import socket
+import sync_socket
 import thread
 
 class LineTooLong(Exception):
@@ -236,7 +236,7 @@ class ircclient:
     def __init__(self, host, port):
         self.host=host
         self.port=port
-        self.s=socket.socket()
+        self.s=sync_socket.SyncronizedSocket()
         self.s.setblocking(1)
         self.lock=thread.allocate_lock()
 
@@ -274,7 +274,7 @@ class ircclient:
                 self.lock.release()
                 if self.DEBUG:
                     print "<<" + msg
-            except socket.timeout:
+            except sync_socket.socket.timeout:
                 self.lock.release()
                 self.periodic_run()
                 continue
@@ -375,7 +375,7 @@ class ircclient:
                     self.event_socket_closed()
                     return
 
-            except socket.timeout:
+            except sync_socket.socket.timeout:
                 self.periodic_run()
                 continue
 
@@ -416,6 +416,14 @@ class ircclient:
                                        raw[raw.find(':',1)+1:])
             else:
                 self.event_priv_msg(irc_user(tokens[0][1:]),
+                                    raw[raw.find(':',1)+1:])
+                
+        elif len(tokens) >= 4 and tokens[1].lower() == 'notice':
+            if tokens[2][0] == '#':
+                self.event_channel_notice(irc_user(tokens[0][1:]),tokens[2],
+                                       raw[raw.find(':',1)+1:])
+            else:
+                self.event_priv_notice(irc_user(tokens[0][1:]),
                                     raw[raw.find(':',1)+1:])
         
         elif len(tokens) >= 5 and tokens[1].lower() == 'kick':
@@ -504,6 +512,11 @@ class ircclient:
         if self.DEBUG:
             print 'DEBUG channel msg @ '+channel+' by '+(user.get_nick()) \
                 +': '+msg
+                
+    def event_channel_notice(self, user, channel, notice):
+        if self.DEBUG:
+            print 'DEBUG notice msg @ '+channel+' by '+(user.get_nick()) \
+                +': '+notice
 
     def event_join(self, user, channel):
         if self.DEBUG:
@@ -541,6 +554,10 @@ class ircclient:
     def event_priv_msg(self, user, msg):
         if self.DEBUG:
             print 'DEBUG priv msg by '+(user.get_nick())+': '+msg
+            
+    def event_priv_notice(self, user, notice):
+        if self.DEBUG:
+            print 'DEBUG notice msg by '+(user.get_nick())+': '+notice
 
     def event_kick(self, user, kicked_nick, chan, msg):
         if self.DEBUG:
