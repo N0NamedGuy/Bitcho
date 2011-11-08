@@ -8,13 +8,19 @@ class LineTooLong(Exception):
     def __str__(self):
         return "message too long"
 
-class irc_user:
+class IRCUser:
+    """Defines an IRC user."""
     nick=None
     username=None
     ip=None
     status=''
 
     def __init__(self, rawstr):
+        """
+        Initializes an IRC user.
+        
+        rawstr - The user description in IRC format
+        """
         self.nick=rawstr.split('!')[0]
         self.username=rawstr.split('!')[1].split('@')[0]
         self.ip=rawstr.split('@')[1]
@@ -23,24 +29,38 @@ class irc_user:
         return str(self.nick)
 
     def get_nick(self):
+        """Returns the user's nick."""
         return self.nick
 
     def get_user(self):
+        """Returns the user's name."""
         return self.username
 
     def get_ip(self):
+        """Returns the user's ip."""
         return self.ip
 
     def get_status(self):
+        """Returns the user's status."""
         return self.status
 
     def set_status(self, status):
+        """Sets the user's status."""
         self.status = status
 
     def get_nick_wstatus(self):
+        """Returns the nick with its user status prepended."""
         return self.status + self.nick
 
 class ircclient:
+    """
+    A simple IRC client on its own. Every time a message is sent
+    from the IRC server, an event is dispatched.
+    
+    To do a usable IRC client, a class deriving from this one should be done.
+    All the necessary event_* methods for the target IRC client (be it a bot,
+    an IRC client with an UI, etc) should be implemented.
+    """
     # RFC 1459 Numeric Errors 
     RFC_ERR_NOSUCHNICK = 401
     RFC_ERR_NOSUCHSERVER = 402
@@ -225,7 +245,6 @@ class ircclient:
     host=None
     port=None
     s=None
-    lock=None # mutex for multithreading
     running=False # am I still running?
 
     state='' # am I waiting for some data from server?
@@ -234,56 +253,93 @@ class ircclient:
     DEBUG=False
 
     def __init__(self, host, port):
+        """
+        Makes a connection to an IRC server.
+        
+        host - the IRC server's host
+        port - the IRC server's listening port
+        """
         self.host=host
         self.port=port
         self.s=sync_socket.SyncronizedSocket()
         self.s.setblocking(1)
-        self.lock=thread.allocate_lock()
 
     def get_nick(self):
+        """
+        Returns the client's nick.
+        """
         return self.nick
 
     def get_host(self):
+        """
+        Returns the IRC server host.
+        """
         return self.host
 
     def get_port(self):
+        """
+        Returns the IRC server listening port.
+        """
         return self.port
     
     def connect(self):
+        """
+        Connects to the IRC server.
+        """
         self.s.connect((self.host,self.port))
         self.s.settimeout(1) # timeout for blocking operations in seconds
 
     def close(self):
+        """
+        Closes the connection to the IRC server.
+        """
         if self.DEBUG:
-            print 'Closing bot'
+            print 'Closing client'
         self.running = False
         self.s.close()
 
     def nick(self, nick):
+        """
+        Change the client's nick.
+        """
         self.send('NICK '+nick)
         self.nick=nick
 
     def send(self, msg):
+        """
+        Sends a command to the IRC server. Refer to the IRC
+        RFCs for the command syntax.
+        """
         if len(msg)+2 > self.MSG_MAX_LENGTH:
             raise LineTooLong
 
         while True:
             try:
-                self.lock.acquire()
                 self.s.send(msg+'\r\n')
-                self.lock.release()
                 if self.DEBUG:
                     print "<<" + msg
             except sync_socket.socket.timeout:
-                self.lock.release()
                 self.periodic_run()
                 continue
             break
 
     def send_msg(self, dest, msg):
+        """
+        Sends a message to a user or channel.
+        
+        dest - Can be either a channel or a nick
+        msg - The message to be delivered
+        """
         self.send('PRIVMSG '+dest+' :'+msg)
 
     def send_msg_color(self, chan, msg):
+        """
+        Sends a message to a user or channel, with a special syntax.
+        Refer to doc/COLOURS.txt for more info on the colour syntax.
+        
+        dest - Can be either a channel or a nick
+        msg - The message to be delivered
+        """
         msg_tokens = msg.split(' ')
         new_msg=''
         print_space = True 
@@ -329,41 +385,93 @@ class ircclient:
         self.send_msg(chan, new_msg)
 
     def names(self, chan):
+        """
+        Sends a NAMES command to the IRC server.
+        
+        chan - The channel to query
+        """
         self.send('NAMES '+chan)
 
     def who(self, chan):
+        """
+        Sends a WHO command to the IRC server.
+        
+        chan - The channel to query
+        """
         self.send('WHO '+chan)
 
     def get_users(self, chan):
+        """
+        Returns an array containing all the users in the specified channel.
+        
+        chan - The channel
+        """
         return self.channels[chan] if chan in self.channels else None
 
     def get_user_status(self, chan, nick):
+        """
+        Gets a user status (op, voice, none) in a specified channel.
+        
+        chan - The channel
+        nick - The user's nick
+        """
         return self.channels[chan][nick].get_status()\
             if chan in self.channels and nick in self.channels[chan] else None
     
     def get_channels(self):
+        """
+        Returns the channels where the client has joined.
+        """
         return self.channels.keys()
     
     def join(self, chan):
+        """
+        Joins a channel.
+        
+        chan - The channel to join.
+        """
         self.send('JOIN '+chan)    
         self.who(chan) 
     
     def quit(self, msg): #@ReservedAssignment
+        """
+        Sends a quit message to the IRC server.
+        
+        msg - Quit message
+        """
         self.send('QUIT '+msg)
 
     def send_all(self, msgs):
+        """
+        Sends mutiple commands to the IRC server.
+        
+        msgs - An array containing the messages
+        """
         for msg in msgs:
             self.send(msg)
 
-    def part(self, chan, reason):
+    def part(self, chan, reason=''):
+        """
+        Leave (or part) a channel.
+        
+        chan - The channel to leave
+        reason - An optional message explaining the leave
+        """
         self.send('PART '+chan+' :'+reason) 
         if chan in self.channels:
             del self.channels[chan]
 
     def periodic_run(self):
+        """
+        This method is called when the socket times out.
+        Subclasses may use this method for periodic checks.
+        """
         pass
 
     def recv_loop(self):
+        """
+        Runs the client, by starting the event loop. This method is a blocking one.
+        """
         buf=''
 
         self.running = True
@@ -389,11 +497,14 @@ class ircclient:
 
                 tokens=line.split(' ')
                 if len(tokens) > 0:
-                    self.handle_event(tokens,line)
+                    self.__handle_event(tokens,line)
 
         self.close()
 
-    def handle_event(self, tokens, raw):
+    def __handle_event(self, tokens, raw):
+        event = None
+        args = []
+        
         if len(tokens) >= 3 and tokens[1].isdigit():
             numparams = []
             for token in tokens[3:]:
@@ -408,72 +519,132 @@ class ircclient:
                 raw[raw.find(':',1)+1:])
 
         elif len(tokens) == 2 and tokens[0].lower() == 'ping':
-            self.event_ping(tokens[1][1:])
+            event = 'ping'
+            args = [tokens[1][1:]]
+            
+            self.event_ping(*args)
         
         elif len(tokens) >= 4 and tokens[1].lower() == 'privmsg':
             if tokens[2][0] == '#':
-                self.event_channel_msg(irc_user(tokens[0][1:]),tokens[2],
-                                       raw[raw.find(':',1)+1:])
+                event = 'channel_msg'
+                args = [IRCUser(tokens[0][1:]),tokens[2],
+                                       raw[raw.find(':',1)+1:]]
+            
+                self.event_channel_msg(*args)
             else:
-                self.event_priv_msg(irc_user(tokens[0][1:]),
-                                    raw[raw.find(':',1)+1:])
+                event = 'priv_msg'
+                args = [IRCUser(tokens[0][1:]),
+                                    raw[raw.find(':',1)+1:]]
+                
+                self.event_priv_msg(*args)
                 
         elif len(tokens) >= 4 and tokens[1].lower() == 'notice':
             if tokens[2][0] == '#':
-                self.event_channel_notice(irc_user(tokens[0][1:]),tokens[2],
-                                       raw[raw.find(':',1)+1:])
+                event = 'channel_notice'
+                args = [IRCUser(tokens[0][1:]),tokens[2],
+                                       raw[raw.find(':',1)+1:]]
+            
+                self.event_channel_notice(*args)
             else:
-                self.event_priv_notice(irc_user(tokens[0][1:]),
+                event = 'priv_notice'
+                args = [IRCUser(tokens[0][1:]),
+                                    raw[raw.find(':',1)+1:]]
+                
+                self.event_priv_notice(IRCUser(tokens[0][1:]),
                                     raw[raw.find(':',1)+1:])
         
         elif len(tokens) >= 5 and tokens[1].lower() == 'kick':
-            self.event_kick(irc_user(tokens[0][1:]),tokens[3],
-                                tokens[2],raw[raw.find(':',1)+1:])
+            event = 'kick'
+            args = [IRCUser(tokens[0][1:]),tokens[3],
+                                tokens[2],raw[raw.find(':',1)+1:]]
+            
+            self.event_kick(*args)
         
         elif len(tokens) == 3 and tokens[1].lower() == 'nick':
             new_nick=tokens[2][1:]
+            
+            event = 'nick'
+            args = [IRCUser(tokens[0][1:]), new_nick]
              
-            if self.nick == irc_user(tokens[0][1:]).get_nick():
+            if self.nick == IRCUser(tokens[0][1:]).get_nick():
                 self.nick=new_nick
 
-            self.event_nick(irc_user(tokens[0][1:]), new_nick)
+            self.event_nick(*args)
 
         elif len(tokens) >= 5 and tokens[1].lower() == 'mode':
+            args = [IRCUser(tokens[0][1:]),tokens[2], tokens[4]]
+           
             if tokens[3] == '+o':
-                self.event_op(irc_user(tokens[0][1:]),tokens[2],
-                               tokens[4])
-            if tokens[3] == '-o':
-                self.event_deop(irc_user(tokens[0][1:]),tokens[2],
-                                 tokens[4])
-            if tokens[3] == '+v':
-                self.event_voice(irc_user(tokens[0][1:]),tokens[2],
-                                 tokens[4])
-            if tokens[3] == '-v':
-                self.event_devoice(irc_user(tokens[0][1:]),tokens[2],
-                                   tokens[4])
+                event = 'op'
+                self.event_op(*args)
+            elif tokens[3] == '-o':
+                event = 'deop'
+                self.event_deop(*args)
+            elif tokens[3] == '+v':
+                event = 'voice'
+                self.event_voice(*args)
+            elif tokens[3] == '-v':
+                event = 'devoice'
+                self.event_devoice(*args)
+            else:
+                event = 'mode'
+                args = [IRCUser(tokens[0][1:]),tokens[2],tokens[3], tokens[4]]
         
         elif len(tokens) >= 3 and tokens[1].lower() == 'part':
-            self.event_part(irc_user(tokens[0][1:]), tokens[2], 
-                            raw[raw.find(':',1)+1:])
+            event = 'part'
+            args = [IRCUser(tokens[0][1:]), tokens[2], raw[raw.find(':',1)+1:]]
+            self.event_part(*args)
                      
         elif len(tokens) >= 3 and tokens[1].lower() == 'join':
-            self.event_join(irc_user(tokens[0][1:]), tokens[2][1:])
+            event = 'join'
+            args = [IRCUser(tokens[0][1:]), tokens[2][1:]]
+            self.event_join(*args)
     
         elif len(tokens) >= 2 and tokens[1].lower() == 'kill':
-            self.event_kill(irc_user(tokens[0][1:]), raw[raw.find(':',1)+1:])
+            event = 'kill'
+            args = [IRCUser(tokens[0][1:]), raw[raw.find(':',1)+1:]]
+            self.event_kill(*args)
     
         elif len(tokens) >= 2 and tokens[1].lower() == 'quit':
-            self.event_quit(irc_user(tokens[0][1:]), raw[raw.find(':',1)+1:])
-            
+            event = 'quit'
+            args = [IRCUser(tokens[0][1:]), raw[raw.find(':',1)+1:]]
+            self.event_quit(*args)
+        
+        elif len(tokens) >= 2:
+            event = tokens[1].lower()
+            args = tokens
+        
         self.event_raw(tokens, raw);
+        if event != None:
+            self.event_non_numeric(event, args)
     
     def event_raw(self, tokens, raw):
+        """
+        This method is called when the IRC server sends any message.
+        
+        tokens - An array containing all the tokens
+        raw - The line sent by the IRC server without the trailing \r\n
+        """
         pass
     
     def event_ping(self, msg):
+        """
+        This method is called when the IRC server sends a PING message.
+        
+        msg - The msg the client should return to the server in a PONG message
+        """
         self.send('PONG :'+msg)
 
     def event_op(self, user, channel, nick_oped):
+        """
+        This method is called when an user is given operator status.
+        
+        user - A ircclient.IRCUser object specifying the user who gave
+            operator status
+        channel - The channel where such status was granted
+        nick_oped - The lucky basterd who is now an operator
+        """
+        
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' oped '+nick_oped \
                 +' in '+channel
@@ -481,6 +652,15 @@ class ircclient:
         self.who(channel)
 
     def event_deop(self, user, channel, nick_oped):
+        """
+        This method is called when an user loses his operator status.
+
+        user - A ircclient.IRCUser object specifying the user who took away
+            operator status
+        channel - The channel where such status was revoked
+        nick_oped - The poor guy who is now a commoner
+        """
+        
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' deoped '+nick_oped \
                 +' in '+channel
@@ -491,6 +671,15 @@ class ircclient:
         #self.channels[channel][nick_oped].set_status('')
 
     def event_voice(self, user, channel, nick_oped):
+        """
+        This method is called when an user is given voice status.
+        
+        user - A ircclient.IRCUser object specifying the user who gave
+            voice status
+        channel - The channel where such status was granted
+        nick_oped - The voiced user
+        """
+        
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' voiced '+nick_oped \
                 +' in '+channel
@@ -499,6 +688,15 @@ class ircclient:
         self.who(channel)
 
     def event_devoice(self, user, channel, nick_oped):
+        """
+        This method is called when an user loses voice status.
+        
+        user - A ircclient.IRCUser object specifying the user who gave
+            voice status
+        channel - The channel where such status was revoked
+        nick_oped - The devoiced user
+        """
+        
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' devoiced '+nick_oped \
                 +' in '+channel
@@ -509,16 +707,42 @@ class ircclient:
         #self.channels[channel][nick_oped].set_status('')
 
     def event_channel_msg(self, user, channel, msg):
+        """
+        This method is called when an user sends a message to a channel.
+        
+        user - A ircclient.IRCUser object specifying the user who sent the
+            message
+        channel - A string representing the channel to where the message was
+            sent
+        msg - The message itself
+        """
+        
         if self.DEBUG:
             print 'DEBUG channel msg @ '+channel+' by '+(user.get_nick()) \
                 +': '+msg
                 
     def event_channel_notice(self, user, channel, notice):
+        """
+        This method is called when an user sends a notice to a channel.
+        
+        user - A ircclient.IRCUser object specifying the user who sent the
+            notice
+        channel - A string representing the channel to where the message was
+            sent
+        notice - The notice itself
+        """
         if self.DEBUG:
             print 'DEBUG notice msg @ '+channel+' by '+(user.get_nick()) \
                 +': '+notice
 
     def event_join(self, user, channel):
+        """
+        This method is called when an user joins a channel.
+        
+        user - A ircclient.IRCUser object specifying the user who joined the
+            channel
+        channel - A string representing the joined channel
+        """
         if self.DEBUG:
             print 'DEBUG ' + (user.get_nick()) + ' joined channel ' \
                 + channel
@@ -536,6 +760,15 @@ class ircclient:
             print self.channels[channel]
     
     def event_part(self, user, channel, msg):
+        """
+        This method is called when an user leaves (or parts) a channel.
+        
+        user - A ircclient.IRCUser object specifying the user who left the
+            channel
+        channel - A string representing the channel the user left
+        msg - A part message
+        """        
+        
         if self.DEBUG:
             print 'DEBUG ' + (user.get_nick()) + ' left channel ' \
                 + channel + '. reason: "' + msg + '"'
@@ -552,17 +785,41 @@ class ircclient:
                 print self.channels[channel]
 
     def event_priv_msg(self, user, msg):
+        """
+        This method is called when an user sends a message directly to the
+        client.
+        
+        user - A ircclient.IRCUser object specifying the user who sent the
+            message
+        msg - The sent message
+        """
         if self.DEBUG:
             print 'DEBUG priv msg by '+(user.get_nick())+': '+msg
             
     def event_priv_notice(self, user, notice):
+        """
+        This method is called when an user sends a notice directly to the
+        client.
+        
+        user - A ircclient.IRCUser object specifying the user who sent the
+            notice
+        notice - The sent notice
+        """
         if self.DEBUG:
             print 'DEBUG notice msg by '+(user.get_nick())+': '+notice
 
-    def event_kick(self, user, kicked_nick, chan, msg):
+    def event_kick(self, user, kicked_nick, chan, reason):
+        """
+        This method is called when an user is kicked from a channel.
+        
+        user - A ircclient.IRCUser object specifying the user who kicked
+        kicked_nick - The poor basterd nick's that got kicked out
+        chan - The channel from where there was a kick
+        reason - The kick reason
+        """
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' kicked '+kicked_nick \
-                +' from '+chan+' msg: '+msg
+                +' from '+chan+' msg: '+reason
 
         if (kicked_nick == self.get_nick()):
             if self.DEBUG:
@@ -576,6 +833,13 @@ class ircclient:
                 print self.channels[chan]
     
     def event_nick(self, user, new_nick):
+        """
+        This method is called when an user changes nick.
+        
+        user - A ircclient.IRCUser object specifying the user who changed the
+            nick
+        new_nick - The new nickname
+        """
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' changed nick to '+new_nick
         
@@ -585,6 +849,12 @@ class ircclient:
 
 
     def event_quit(self, user, reason):
+        """
+        This method is called when an user quits the IRC server.
+        
+        user - A ircclient.IRCUser object specifying the user who quitted
+        reason - The quit reason
+        """
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' has quit. Reason: ' + \
                 reason
@@ -594,14 +864,32 @@ class ircclient:
             self.who(chan)
 
     def event_kill(self, user, reason):
+        """
+        This method is called when an user gets "killed" by an IRC operator.
+        
+        user - A ircclient.IRCUser object specifying the user who got killed
+        reason - The kill reason
+        """
         if self.DEBUG:
             print 'DEBUG '+(user.get_nick())+' got killed! Reason: ' + \
                 reason
 
     def make_raw_nick(self, nick, user, host):
+        """
+        Returns an assembled IRC nick.
+        """
         return nick + '!' + user + '@' + host
 
     def event_numeric(self, event_num, nick, params, msg):
+        """
+        This method is called whenever a numeric reply gets received by the
+        client. See the IRC RFC for more details on the parameters.
+        
+        event_num - The event number
+        nick - The nick who sent triggered the reply
+        params - The reply parameters
+        msg - The reply message 
+        """
         if event_num == self.RFC_RPL_NAMREPLY:
             if self.DEBUG:
                 chan = params[len(params) - 1]
@@ -623,13 +911,25 @@ class ircclient:
                 self.state = 'WHO'
                 self.channels[chan] = {}
 
-            self.channels[chan][nickname] = irc_user(self.make_raw_nick(nickname, username, host))
+            self.channels[chan][nickname] = IRCUser(self.make_raw_nick(nickname, username, host))
             self.channels[chan][nickname].set_status(status)
 
         elif event_num == self.RFC_RPL_ENDOFWHO:
             self.state = ''
-                
+    
+    def event_non_numeric(self, event, args):
+        """
+        This method is called when the IRC server sends a non numeric message.
+        
+        event - A string describing the event
+        args - An array with the parameters to the event
+        """
+        pass
+    
     def event_socket_closed(self):
+        """
+        This method is called when the connection is closed or lost.
+        """
         if self.DEBUG:
             print 'DEBUG socket closed'
 

@@ -1,52 +1,54 @@
 '''
 Created on Nov 1, 2011
 
+This is the implementation of an ircclient class called Bitcho.
+
 @author: David Serrano
 '''
 from ircclient import ircclient
 import plugin_manager
 
 class Bitcho(ircclient):
+    """
+    An ircclient implementation, that calls plugin methods.
+    """
 
-    def __init__(self, host, port, auth):
+    # TODO: when moving send_welcome to its own plugin
+    # move auth parameter along with it
+    def __init__(self, host, port=6667, auth=[]):
+        """
+        Makes a connection to an IRC server.
+        
+        host - the IRC server's host
+        port - the IRC server's listening port
+        auth - an array containing auth information (soon to be removed)
+        """
         ircclient.__init__(self, host, port)
         self.auth = auth
         plugin_manager.get_plugins(self)
     
     # TODO: move to a plugin of its own
     def send_welcome(self):
+        """
+        Sends the welcome message to the connected IRC server.
+        (soon to be removed)
+        """
         ircclient.send_all(self, [
             'USER Bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
             "nickserv login %s %s" % (self.auth[0], self.auth[1])])
 
     def recv_loop(self):
+        """
+        Runs the event system. This method is a blocking one.
+        """
         plugin_manager.handle_plugins(self, "connect")
         return ircclient.recv_loop(self)
     
-    def event_join(self, user, channel):
-        ircclient.event_join(self, user, channel)
-        plugin_manager.handle_plugins(self, 'join', [user, channel])
+    def event_non_numeric(self, event, args):
+        ircclient.event_non_numeric(self, event, args)
+        plugin_manager.handle_plugins(self, event, args)
         
-    def event_part(self, user, channel, msg):
-        ircclient.event_part(self, user, channel, msg)
-        plugin_manager.handle_plugins(self, 'part', [user, channel, msg])
-        
-    def event_channel_msg(self, user, channel, msg):
-        ircclient.event_channel_msg(self, user, channel, msg)
-        plugin_manager.handle_plugins(self, 'channel_msg', [user, channel, msg])
     
-    def event_priv_msg(self, user, msg):
-        ircclient.event_priv_msg(self, user, msg)
-        plugin_manager.handle_plugins(self, 'priv_msg', [user, msg])
-    
-    def event_op(self, user, channel, nick_oped):
-        ircclient.event_deop(self, user, channel, nick_oped)
-        plugin_manager.handle_plugins(self, 'op', [user, channel, nick_oped])
-        
-    def event_deop(self, user, channel, nick_deoped):
-        ircclient.event_deop(self, user, channel, nick_deoped)
-        plugin_manager.handle_plugins(self, 'deop', [user, channel, nick_deoped])
-        
     # TODO: other events
     
     def event_raw(self, tokens, raw):
