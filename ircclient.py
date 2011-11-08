@@ -1,5 +1,4 @@
 import sync_socket
-import thread
 
 class LineTooLong(Exception):
     def __init__(self):
@@ -52,7 +51,7 @@ class IRCUser:
         """Returns the nick with its user status prepended."""
         return self.status + self.nick
 
-class ircclient:
+class IRCClient:
     """
     A simple IRC client on its own. Every time a message is sent
     from the IRC server, an event is dispatched.
@@ -512,11 +511,14 @@ class ircclient:
                     numparams.append(token)
                 else:
                     break
-
-            self.event_numeric(int(tokens[1]), \
+                
+            event = 'numeric'
+            args = [int(tokens[1]), \
                 tokens[2],\
                 numparams,\
-                raw[raw.find(':',1)+1:])
+                raw[raw.find(':',1)+1:]]
+
+            self.event_numeric(*args)
 
         elif len(tokens) == 2 and tokens[0].lower() == 'ping':
             event = 'ping'
@@ -616,7 +618,7 @@ class ircclient:
         
         self.event_raw(tokens, raw);
         if event != None:
-            self.event_non_numeric(event, args)
+            self.event_generic(event, args)
     
     def event_raw(self, tokens, raw):
         """
@@ -639,7 +641,7 @@ class ircclient:
         """
         This method is called when an user is given operator status.
         
-        user - A ircclient.IRCUser object specifying the user who gave
+        user - A IRCClient.IRCUser object specifying the user who gave
             operator status
         channel - The channel where such status was granted
         nick_oped - The lucky basterd who is now an operator
@@ -655,7 +657,7 @@ class ircclient:
         """
         This method is called when an user loses his operator status.
 
-        user - A ircclient.IRCUser object specifying the user who took away
+        user - A IRCClient.IRCUser object specifying the user who took away
             operator status
         channel - The channel where such status was revoked
         nick_oped - The poor guy who is now a commoner
@@ -674,7 +676,7 @@ class ircclient:
         """
         This method is called when an user is given voice status.
         
-        user - A ircclient.IRCUser object specifying the user who gave
+        user - A IRCClient.IRCUser object specifying the user who gave
             voice status
         channel - The channel where such status was granted
         nick_oped - The voiced user
@@ -691,7 +693,7 @@ class ircclient:
         """
         This method is called when an user loses voice status.
         
-        user - A ircclient.IRCUser object specifying the user who gave
+        user - A IRCClient.IRCUser object specifying the user who gave
             voice status
         channel - The channel where such status was revoked
         nick_oped - The devoiced user
@@ -710,7 +712,7 @@ class ircclient:
         """
         This method is called when an user sends a message to a channel.
         
-        user - A ircclient.IRCUser object specifying the user who sent the
+        user - A IRCClient.IRCUser object specifying the user who sent the
             message
         channel - A string representing the channel to where the message was
             sent
@@ -725,7 +727,7 @@ class ircclient:
         """
         This method is called when an user sends a notice to a channel.
         
-        user - A ircclient.IRCUser object specifying the user who sent the
+        user - A IRCClient.IRCUser object specifying the user who sent the
             notice
         channel - A string representing the channel to where the message was
             sent
@@ -739,7 +741,7 @@ class ircclient:
         """
         This method is called when an user joins a channel.
         
-        user - A ircclient.IRCUser object specifying the user who joined the
+        user - A IRCClient.IRCUser object specifying the user who joined the
             channel
         channel - A string representing the joined channel
         """
@@ -763,7 +765,7 @@ class ircclient:
         """
         This method is called when an user leaves (or parts) a channel.
         
-        user - A ircclient.IRCUser object specifying the user who left the
+        user - A IRCClient.IRCUser object specifying the user who left the
             channel
         channel - A string representing the channel the user left
         msg - A part message
@@ -789,7 +791,7 @@ class ircclient:
         This method is called when an user sends a message directly to the
         client.
         
-        user - A ircclient.IRCUser object specifying the user who sent the
+        user - A IRCClient.IRCUser object specifying the user who sent the
             message
         msg - The sent message
         """
@@ -801,7 +803,7 @@ class ircclient:
         This method is called when an user sends a notice directly to the
         client.
         
-        user - A ircclient.IRCUser object specifying the user who sent the
+        user - A IRCClient.IRCUser object specifying the user who sent the
             notice
         notice - The sent notice
         """
@@ -812,7 +814,7 @@ class ircclient:
         """
         This method is called when an user is kicked from a channel.
         
-        user - A ircclient.IRCUser object specifying the user who kicked
+        user - A IRCClient.IRCUser object specifying the user who kicked
         kicked_nick - The poor basterd nick's that got kicked out
         chan - The channel from where there was a kick
         reason - The kick reason
@@ -836,7 +838,7 @@ class ircclient:
         """
         This method is called when an user changes nick.
         
-        user - A ircclient.IRCUser object specifying the user who changed the
+        user - A IRCClient.IRCUser object specifying the user who changed the
             nick
         new_nick - The new nickname
         """
@@ -852,7 +854,7 @@ class ircclient:
         """
         This method is called when an user quits the IRC server.
         
-        user - A ircclient.IRCUser object specifying the user who quitted
+        user - A IRCClient.IRCUser object specifying the user who quitted
         reason - The quit reason
         """
         if self.DEBUG:
@@ -867,7 +869,7 @@ class ircclient:
         """
         This method is called when an user gets "killed" by an IRC operator.
         
-        user - A ircclient.IRCUser object specifying the user who got killed
+        user - A IRCClient.IRCUser object specifying the user who got killed
         reason - The kill reason
         """
         if self.DEBUG:
@@ -917,12 +919,12 @@ class ircclient:
         elif event_num == self.RFC_RPL_ENDOFWHO:
             self.state = ''
     
-    def event_non_numeric(self, event, args):
+    def event_generic(self, event, args):
         """
-        This method is called when the IRC server sends a non numeric message.
+        This method is called when the IRC server sends a message.
         
-        event - A string describing the event
-        args - An array with the parameters to the event
+        event_generic - A string describing the event_generic
+        args - An array with the parameters to the event_generic
         """
         pass
     

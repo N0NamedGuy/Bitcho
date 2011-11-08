@@ -69,11 +69,11 @@ def get_plugins(bot):
     
     bot._plugins = plugins
 
-def handle_plugin(event, plugin, args):
-    if not event in plugin.events:
+def handle_plugin(event_generic, plugin, args):
+    if not event_generic in plugin.events:
         return
     
-    funs = plugin.events[event]
+    funs = plugin.events[event_generic]
     
     for ev in funs:
         t = FunThread(ev.callback, args)
@@ -81,10 +81,10 @@ def handle_plugin(event, plugin, args):
         
         # TODO: some kind of thread manager would be nice =)
 
-def handle_plugins(bot, event, args = []):
-    if not event in bot._plugins:
+def handle_plugins(bot, event_generic, args = []):
+    if not event_generic in bot._plugins:
         return
     
-    plugs = bot._plugins[event]
+    plugs = bot._plugins[event_generic]
     for p in plugs:
-        handle_plugin(event, p, args)
+        handle_plugin(event_generic, p, args)

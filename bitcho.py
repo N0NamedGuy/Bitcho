@@ -1,16 +1,16 @@
 '''
 Created on Nov 1, 2011
 
-This is the implementation of an ircclient class called Bitcho.
+This is the implementation of an IRCClient class called Bitcho.
 
 @author: David Serrano
 '''
-from ircclient import ircclient
+from IRCClient import IRCClient
 import plugin_manager
 
-class Bitcho(ircclient):
+class Bitcho(IRCClient):
     """
-    An ircclient implementation, that calls plugin methods.
+    An IRCClient implementation, that calls plugin methods.
     """
 
     # TODO: when moving send_welcome to its own plugin
@@ -23,7 +23,7 @@ class Bitcho(ircclient):
         port - the IRC server's listening port
         auth - an array containing auth information (soon to be removed)
         """
-        ircclient.__init__(self, host, port)
+        IRCClient.__init__(self, host, port)
         self.auth = auth
         plugin_manager.get_plugins(self)
     
@@ -33,8 +33,8 @@ class Bitcho(ircclient):
         Sends the welcome message to the connected IRC server.
         (soon to be removed)
         """
-        ircclient.send_all(self, [
-            'USER Bitcho %s bla :hihi' % (ircclient.get_host(self),) ,
+        IRCClient.send_all(self, [
+            'USER Bitcho %s bla :hihi' % (IRCClient.get_host(self),) ,
             "nickserv login %s %s" % (self.auth[0], self.auth[1])])
 
     def recv_loop(self):
@@ -42,26 +42,9 @@ class Bitcho(ircclient):
         Runs the event system. This method is a blocking one.
         """
         plugin_manager.handle_plugins(self, "connect")
-        return ircclient.recv_loop(self)
+        return IRCClient.recv_loop(self)
     
-    def event_non_numeric(self, event, args):
-        ircclient.event_non_numeric(self, event, args)
-        plugin_manager.handle_plugins(self, event, args)
-        
-    
-    # TODO: other events
-    
-    def event_raw(self, tokens, raw):
-        if len(tokens[1]) < 3:
-            return
-        
-        ev = tokens[1].lower()
-        
-        if not ev.isdigit():
-            if not ev in self._plugins:
-                return
-            
-            plugs = self._plugins[ev]
-            for p in plugs:
-                plugin_manager.handle_plugin('raw', p, tokens)
+    def event_generic(self, event_generic, args):
+        IRCClient.event_generic(self, event_generic, args)
+        plugin_manager.handle_plugins(self, event_generic, args)
                 

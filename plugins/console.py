@@ -46,5 +46,8 @@ class ConsolePlugin(PluginBase):
     def on_priv_msg(self, user, msg):
         print "<%s> - %s" % (user, msg)
 
-    def on_numeric(self, user, *tokens):
-        print tokens
+    def on_numeric(self, *tokens):
+        sys.stdout.write("* ")
+        for token in tokens:
+            sys.stdout.write("%s " % (str(token)))
+        sys.stdout.write("\n")
