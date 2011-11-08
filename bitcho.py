@@ -5,7 +5,7 @@ This is the implementation of an IRCClient class called Bitcho.
 
 @author: David Serrano
 '''
-from IRCClient import IRCClient
+from ircclient import IRCClient
 import plugin_manager
 
 class Bitcho(IRCClient):
