@@ -383,6 +383,16 @@ class IRCClient:
 
         self.send_msg(chan, new_msg)
 
+    def send_notice(self, dest, notice):
+        """
+        Sends a notice to a user or channel.
+        
+        dest - Can be either a channel or a nick
+        notice - The notice to be delivered
+        """
+        self.send('NOTICE '+dest+' :'+notice)
+
+
     def names(self, chan):
         """
         Sends a NAMES command to the IRC server.
