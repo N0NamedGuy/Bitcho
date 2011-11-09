@@ -1,0 +1,103 @@
+<html>
+<head>
+	<title>Bitcho Documentation - Events</title>
+</head>
+<body>
+	<h1>Bitcho Documentation</h1>
+	<hr/>
+	<h2>Events Overview</h2>
+	<div>
+	An event is triggered when a message is received from the IRC server,
+	or it is explicitly triggered by, for instance, a call to the <code>
+	PuginBase.dispatch_event()</code> method.
+	<br/>
+	Each event has its <i>type</i> and <i>parameters</i>. For instance, the
+	event <i>join</i> has as its parameters the user who joined the channel,
+	and the joined channel.
+	<br/>
+	Plugins, as said earlier, have their own ability to trigger events. All
+	they need to do is call the <code>dispatch_event</code> method inherited
+	from the <code>PluginBase</code> class.
+	</div>
+	<hr/>
+	<h2>Event Index</h2>
+	<h3>Bot Events</h3>
+	<div>
+	<ul>
+		<li><a href="#ref_numeric"><code>numeric</code></a></li>
+		<li><a href="#ref_ping"><code>ping</code></a></li>
+		<li><a href="#ref_channel_msg"><code>channel_msg</code></a></li>
+		<li><a href="#ref_priv_msg"><code>priv_msg</code></a></li>
+		<li><a href="#ref_channel_notice"><code>channel_notice</code></a></li>
+		<li><a href="#ref_priv_notice"><code>priv_notice</code></a></li>
+		<li><a href="#ref_kick"><code>kick</code></a></li>
+		<li><a href="#ref_nick"><code>nick</code></a></li>
+		<li><a href="#ref_op"><code>op</code></a></li>
+		<li><a href="#ref_depo"><code>deop</code></a></li>
+		<li><a href="#ref_voice"><code>voice</code></a></li>
+		<li><a href="#ref_devoice"><code>devoice</code></a></li>
+		<li><a href="#ref_mode"><code>mode</code></a></li>
+		<li><a href="#ref_part"><code>part</code></a></li>
+		<li><a href="#ref_join"><code>join</code></a></li>
+		<li><a href="#ref_kill"><code>kill</code></a></li>
+		<li><a href="#ref_quit"><code>quit</code></a></li>
+		<li><a href="#ref_connect"><code>connect</code></a></li>
+	</ul>
+	</div>
+	<h3>Plugin Events</h3>
+	<div>
+	<ul>
+		<li><a href="#ref_cmd"><code>cmd_?</code></a> from <code>CommandsPlugin</code></li>
+	</ul>
+	</div>
+	<hr/>
+	<h2>Event Reference</h2>
+	<div>
+	<a name="ref_numeric"/>
+	<h3>numeric</h3>
+	<code>event_num, nick, params, msg</code><br/>
+	Triggered whenever a numeric reply is received. If you do not understand
+	this, it is better that you read the IRC RFC.
+	<br/>
+	<code>nick</code> - The nick in the reply (depends on the numeric message)<br/>
+	<code>params</code> - The reply parameters<br/>
+	<code>msg</code> - The reply message<br/>
+	
+	<a name="ref_ping"/>
+	<h3>ping</h3>
+	<code>msg</code>
+	<br/>
+	Triggered whenever a ping message is received. Most plugins wouldn'tcare
+	to handle this event, but if you want to do so, have a go at it.
+	<br/>
+	<code>msg</code> - The message to be sent on PONG command.<br/>
+	
+	<a name="ref_channel_msg"/>
+	<h3>channel_msg</h3>
+	<code>user, channel</code>
+	<br/>
+	Triggered when an user (bot included) joins a channel.
+	<br/>
+	<code>user</code> - An <code>IRCClient.IRCUser</code> object specifying the
+		user who joined the channel<br/>
+    <code>channel</code> - A string representing the joined channel<br/>
+	
+	<h3>priv_msg</h3>
+	<h3>channel_notice</h3>
+	<h3>priv_notice</h3>
+	<h3>kick</h3>
+	<h3>nick</h3>
+	<h3>op</h3>
+	<h3>deop</h3>
+	<h3>voice</h3>
+	<h3>devoice</h3>
+	<h3>mode</h3>
+	<h3>part</h3>
+	<h3>join</h3>
+	<h3>kill</h3>
+	<h3>quit</h3>
+	<h3>connect</h3>
+	<h3>cmd_?</h3>
+	</div>
+</body>
+</html>

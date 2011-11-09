@@ -1,0 +1,63 @@
+<html>
+<head>
+	<title>Bitcho Documentation - Plugin System</title>
+</head>
+<body>
+	<h1>Bitcho Documentation</h1>
+	<hr/>
+	<h2>Plugin System Overview</h2>
+	<div>Every plugin is a python class. That python class must be written
+	on a .py file, and be located on the plugins folder (or any subfolder).
+	The plugin class must extend the <code>PluginBase</code> class,
+	located on the plugin_base module. Here's a sample skeleton for a plugin
+	that does nothing useful:<br/>
+	
+	<div>
+		<code>
+		from plugin_base import PluginBase<br/>
+		<br/>
+		class SamplePlugin(PluginBase):<br/>
+    	&nbsp;&nbsp;&nbsp;&nbsp;def plugin_init(self):<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pass<br/>
+		</code>
+	</div>
+	
+	Now, from this skeleton, we can do something more useful (or annoying).
+	Let's make a greeter! Every time an user joins a channel the bot has
+	joined, that same user will be greeted:<br/>
+	
+	<div>
+		<code>
+		from plugin_base import PluginBase<br/>
+		<br/>
+		class WelcomePlugin(PluginBase):<br/>
+    	&nbsp;&nbsp;&nbsp;&nbsp;def plugin_init(self):<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.register_event("join", self.on_join)<br/>
+        <br/>
+    	&nbsp;&nbsp;&nbsp;&nbsp;def on_join(self, user, channel):<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.bot.send_msg(channel, "Welcome to %s, %s!" % (channel, user))<br/>
+		</code>
+	</div>
+	
+	First thing you may notice is the different name was given to the
+	<code>PluginBase</code> subclass (<code>WelcomePlugin</code>). The bot does
+	not care about the name you give to this class. Call it the name you want.
+	Next, you are invited to look at the <code>plugin_init</code> method.
+	You'll notice that a call to the <code>register_event</code> method is
+	done. That's the way plugins should register themselves with events. In
+	this case, this plugin registered the <i>join</i> event, as explicit by
+	the first argument. The second argument should be a pointer to a function
+	(or a method, or a bounded function, if you prefer), that will be a
+	callback, for that event. Whenever the <i>join</i> event happens, the
+	<code>self.on_join</code> method is called.
+	<br/>
+	When the code on <code>on_join</code> is run, the bot sends a message to
+	the channel. The <code>self.bot</code> property is an instance of the
+	running bot. Check the Bitcho class reference to know the methods and
+	properties available.
+	<br/>
+	And there you go! A fully functional plugin!
+	</div>
+	
+</body>
+</html>
