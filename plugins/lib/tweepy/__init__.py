@@ -5,11 +5,11 @@
 """
 Tweepy Twitter API library
 """
-__version__ = '1.8'
+__version__ = '2.0'
 __author__ = 'Joshua Roesslein'
 __license__ = 'MIT'
 
-from plugins.lib.tweepy.models import Status, User, DirectMessage, Friendship, SavedSearch, SearchResult, ModelFactory
+from plugins.lib.tweepy.models import Status, User, DirectMessage, Friendship, SavedSearch, SearchResult, ModelFactory, Category
 from plugins.lib.tweepy.error import TweepError
 from plugins.lib.tweepy.api import API
 from plugins.lib.tweepy.cache import Cache, MemoryCache, FileCache
