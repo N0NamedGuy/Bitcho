@@ -15,7 +15,11 @@ url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-
 class UrlPlugin(PluginBase):
     
     def parse_url(self, url, dest):
-        html = urllib2.urlopen(url).read()
+        opener = urllib2.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        response = opener.open(url)
+
+        html = response.read()
         soup = BeautifulSoup(html)
         title = soup.findAll("title")
 
