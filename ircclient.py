@@ -335,7 +335,7 @@ class IRCClient:
         dest - Can be either a channel or a nick
         msg - The message to be delivered
         """
-        self.send('PRIVMSG '+dest+' :'+msg)
+        self.send('PRIVMSG ' + dest.encode('utf-8') + ' :' + msg.encode('utf-8'))
 
     def send_msg_color(self, chan, msg):
         """
@@ -487,12 +487,12 @@ class IRCClient:
         """
         Runs the client, by starting the event loop. This method is a blocking one.
         """
-        buf=''
+        buf = ''
 
         self.running = True
         while self.running:
             try:
-                buf+=self.s.recv(1024*32)
+                buf += self.s.recv(1024*32)
                 if buf == '': # TCP Connection went down :(
                     self.running = False
                     self.event_socket_closed()
@@ -509,6 +509,9 @@ class IRCClient:
                 
                 if self.DEBUG:
                     print '>>' + line
+
+                # UTF-8 decoding
+                line = line.decode('utf-8')
 
                 tokens=line.split(' ')
                 if len(tokens) > 0:
