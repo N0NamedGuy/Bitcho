@@ -13,6 +13,7 @@ class IRCUser:
     username=None
     ip=None
     status=''
+    isserver=False
 
     def __init__(self, rawstr):
         """
@@ -20,9 +21,14 @@ class IRCUser:
         
         rawstr - The user description in IRC format
         """
-        self.nick=rawstr.split('!')[0]
-        self.username=rawstr.split('!')[1].split('@')[0]
-        self.ip=rawstr.split('@')[1]
+        try:
+            self.nick=rawstr.split('!')[0]
+            self.username=rawstr.split('!')[1].split('@')[0]
+            self.ip=rawstr.split('@')[1]
+        except IndexError:
+            self.nick=rawstr
+            self.isserver=True
+
 
     def __str__(self):
         return str(self.nick)
