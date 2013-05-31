@@ -1,0 +1,9 @@
+{
+    "nick": "bot-testing",
+    "username": "Bitcho",
+    "host": "irclei.ath.cx",
+    "realname": "Bitcho Bot",
+    "commands": [
+        "nickserv identify SOMECRAZYPASSWD"
+    ]
+}

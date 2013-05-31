@@ -3,30 +3,30 @@
 from bitcho import Bitcho
 import sys
 
-host='irclei.ath.cx'
-port=6667
+host = 'irclei.ath.cx'
+port = 6667
 
-nick = sys.argv[1] if len(sys.argv) >= 2 else 'bot-testing'
-password= sys.argv[2] if len(sys.argv) >= 3 else "blahbottesting"
+if len(sys.argv) > 1:
+    host = sys.argv[1]
+
+if len(sys.argv) > 2:
+    port = sys.argv[2]
 
 def main():
-    auth=(nick,password)
-    client=Bitcho(host,port,auth)
+    client=Bitcho(host,port)
     try:
         client.connect()
-        client.nick(nick)
-        client.send_welcome()
         client.recv_loop()
     except KeyboardInterrupt:
-            client.quit('Hasta!')
-            client.close()
-            print
-            print 'socket closed'
-    except Exception, e:
-            client.quit('I made a boo boo =(')
-            client.close()
-            print 'socket closed'
-            print e
-            raise
+        client.quit('Hasta!')
+        client.close()
+        print
+        print 'socket closed'
+    except Exception as e:
+        client.quit('I made a boo boo =(')
+        client.close()
+        print 'socket closed'
+        print e
+        raise
 
 main()
