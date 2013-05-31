@@ -17,10 +17,11 @@ class UrlPlugin(PluginBase):
     def parse_url(self, url, dest):
         html = urllib2.urlopen(url).read()
         soup = BeautifulSoup(html)
-        title = soup.findAll("title")[0]
+        title = soup.findAll("title")
 
-        self.bot.send_msg(dest, title.string)
-
+        if len(title) > 0:
+            title_str = title[0].string
+            self.bot.send_msg(dest, title_str)
 
     def plugin_init(self):
         self.register_event("channel_msg", self.on_channel_msg)
