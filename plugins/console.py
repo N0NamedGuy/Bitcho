@@ -13,7 +13,7 @@ class ConsolePlugin(PluginBase):
             sys.stdout.write("> ")
             line = sys.stdin.readline()
             if line == "": return
-            line = line[:-2]
+            line = line.rstrip("\r\n")
             
             self.parse(line)
     
@@ -22,6 +22,7 @@ class ConsolePlugin(PluginBase):
         
         if line.startswith("/"):
             line = line[1:]
+            print "Sending: '" + line + "'"
             self.bot.send(line)
     
     def plugin_init(self):
